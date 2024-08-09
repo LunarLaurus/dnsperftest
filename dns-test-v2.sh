@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
+
 # Ensure required commands are available
-for cmd in bc drill dig; do
+for cmd in bc dig; do
     command -v $cmd >/dev/null || {
         echo "error: $cmd was not found. Please install it."
         exit 1
