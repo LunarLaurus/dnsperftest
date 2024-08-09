@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-
 # Ensure required commands are available
 for cmd in bc dig; do
     command -v $cmd >/dev/null || {
@@ -97,6 +96,9 @@ done
 printf "%-8s" "Average"
 echo ""
 
+# Array to store provider results for sorting later
+declare -a provider_results
+
 # Test each provider
 for p in $NAMESERVERS $providerstotest; do
     pip="${p%%#*}"
@@ -121,17 +123,28 @@ for p in $NAMESERVERS $providerstotest; do
     done
 
     avg=$(echo "scale=2; $total_time/$(wc -w <<<"$DOMAINS2TEST")" | bc)
-    echo "  $avg"
+    printf "%-8s" "${avg}ms"
+    echo ""
+
+    # Store the result for sorting later
+    provider_results+=("$avg ms - $pname")
 
     # Log results
     echo "$pname: $avg ms average response time" >> "$LOGFILE"
 done
 
-# Summary of fastest and slowest providers
+# Sort and display the fastest and slowest providers
+mapfile -t sorted < <(printf "%s\n" "${provider_results[@]}" | sort -n)
+
 echo -e "\nFastest Providers:" | tee -a "$LOGFILE"
-grep -Eo '[0-9]+\.[0-9]+ ms average response time' "$LOGFILE" | sort -n | head -3 | tee -a "$LOGFILE"
+for i in {0..2}; do
+    echo "${sorted[$i]}" | tee -a "$LOGFILE"
+done
 
 echo -e "\nSlowest Providers:" | tee -a "$LOGFILE"
-grep -Eo '[0-9]+\.[0-9]+ ms average response time' "$LOGFILE" | sort -n | tail -3 | tee -a "$LOGFILE"
+for i in $(seq $((${#sorted[@]} - 3)) $((${#sorted[@]} - 1))); do
+    echo "${sorted[$i]}" | tee -a "$LOGFILE"
+done
+
 
 exit 0
