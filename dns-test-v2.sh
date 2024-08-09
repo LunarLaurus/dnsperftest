@@ -88,10 +88,14 @@ NC='\033[0m' # No Color
 
 # Display header
 printf "%-21s" ""
-for ((i = 1; i <= $(wc -w <<<"$DOMAINS2TEST"); i++)); do
+num_domains=$(wc -w <<<"$DOMAINS2TEST")
+
+for i in $(seq 1 "$num_domains"); do
     printf "test%-8s" "$i"
 done
-echo "Average"
+
+printf "%-8s" "Average"
+echo ""
 
 # Test each provider
 for p in $NAMESERVERS $providerstotest; do
